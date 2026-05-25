@@ -1,3 +1,8 @@
+## Production setup notes
+
+- Ensure you set `SUPABASE_SERVICE_ROLE_KEY` in your hosting environment (Vercel/Netlify) — this is required for admin user provisioning and server-side storage/push operations.
+- Generate VAPID keys for web-push and set `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` in the environment for the push send endpoint to work.
+- After setting env variables, deploy the Next.js app and confirm API routes `/api/admin/users` and `/api/push/send` respond correctly.
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
