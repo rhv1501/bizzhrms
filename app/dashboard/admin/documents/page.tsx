@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { loadDocuments, uploadDocument, deleteDocument, DocumentItem, loadAdminEmployeesSnapshot } from "@/lib/hrms/live";
@@ -75,13 +74,11 @@ export default function AdminDocumentsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Document Vault</h1>
           <p className="text-muted-foreground mt-1">Manage company policies and employee-specific documents.</p>
         </div>
+        <Button className="gap-2" onClick={() => setIsOpen(true)}>
+          <Upload className="w-4 h-4" />
+          Upload Document
+        </Button>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Upload className="w-4 h-4" />
-              Upload Document
-            </Button>
-          </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Upload New Document</DialogTitle>
@@ -93,7 +90,7 @@ export default function AdminDocumentsPage() {
               </div>
               <div className="space-y-2">
                 <Label>Assign To</Label>
-                <Select value={newDoc.userId} onValueChange={v => setNewDoc({ ...newDoc, userId: v })}>
+                <Select value={newDoc.userId} onValueChange={v => setNewDoc({ ...newDoc, userId: v || "all" })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Company Policy (All Employees)</SelectItem>
@@ -145,8 +142,8 @@ export default function AdminDocumentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer">View</a>
+                    <Button variant="outline" size="sm" onClick={() => window.open(doc.fileUrl, '_blank')}>
+                      View
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(doc.id)} className="text-destructive hover:bg-destructive/10">
                       <Trash2 className="w-4 h-4" />
