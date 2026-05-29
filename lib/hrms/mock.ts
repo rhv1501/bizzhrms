@@ -26,6 +26,7 @@ export type TaskItem = {
   status: TaskStatus;
   assignee: string;
   deadline: string;
+  rawDeadline?: string | null;
   progress: number;
 };
 
@@ -44,6 +45,7 @@ export type AttendanceItem = {
   department: string;
   clockIn: string;
   clockOut: string;
+  date: string;
   hours: number;
   status: AttendanceStatus;
   location?: { latitude: number; longitude: number; locationName?: string | null } | null;
@@ -202,6 +204,7 @@ export const attendanceLogs: AttendanceItem[] = [
     id: "att-1",
     employee: "John Doe",
     department: "Engineering",
+    date: "2026-05-29",
     clockIn: "08:48 AM",
     clockOut: "05:14 PM",
     hours: 8.43,
@@ -211,6 +214,7 @@ export const attendanceLogs: AttendanceItem[] = [
     id: "att-2",
     employee: "Jane Smith",
     department: "Operations",
+    date: "2026-05-29",
     clockIn: "09:14 AM",
     clockOut: "05:33 PM",
     hours: 8.31,
@@ -220,6 +224,7 @@ export const attendanceLogs: AttendanceItem[] = [
     id: "att-3",
     employee: "Mike Johnson",
     department: "Sales",
+    date: "2026-05-29",
     clockIn: "09:00 AM",
     clockOut: "01:02 PM",
     hours: 4.03,
@@ -229,6 +234,7 @@ export const attendanceLogs: AttendanceItem[] = [
     id: "att-4",
     employee: "Sarah Williams",
     department: "HR & Admin",
+    date: "2026-05-29",
     clockIn: "08:55 AM",
     clockOut: "05:22 PM",
     hours: 8.45,

@@ -36,7 +36,14 @@ export async function GET(request: NextRequest) {
 
     // If a user is authenticated, return notifications targeted to that user OR system notifications (user_id null)
     if (user?.id) {
-      builder = builder.or(`user_id.eq.${user.id},user_id.is.null` as any);
+      const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single();
+      const isAdmin = userData?.role === "admin";
+      
+      if (isAdmin) {
+        builder = builder.or(`user_id.eq.${user.id},user_id.is.null` as any);
+      } else {
+        builder = builder.or(`user_id.eq.${user.id},and(user_id.is.null,type.eq.system)` as any);
+      }
     }
 
     const { data, error } = await builder;

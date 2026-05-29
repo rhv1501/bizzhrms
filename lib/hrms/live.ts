@@ -139,6 +139,7 @@ function makeAttendanceItem(
     id: row.id,
     employee: displayName(user),
     department: user?.department ?? "Unknown",
+    date: row.date,
     clockIn: formatClockLabel(row.clock_in_time),
     clockOut: formatClockLabel(row.clock_out_time),
     hours,
@@ -171,6 +172,7 @@ function makeTaskItem(row: TaskRow, user: UserRow | undefined): TaskItem {
     status: row.status as any,
     assignee: displayName(user),
     deadline: row.deadline ? formatDayLabel(row.deadline) : "No deadline",
+    rawDeadline: row.deadline,
     progress: row.status === "completed" ? 100 : row.status === "in_progress" ? 60 : 20,
   };
 }
@@ -275,7 +277,8 @@ export async function loadAdminDashboardSnapshot(): Promise<AdminDashboardSnapsh
   }
 
   const usersPromise = client.from("users").select("*");
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const attendancePromise = client
     .from("attendance")
     .select("*")
@@ -548,7 +551,8 @@ export async function clockInAttendance(userId: string, location?: ClockLocation
     return null;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const now = new Date().toISOString();
   const { data: existing } = await client
     .from("attendance")
@@ -645,7 +649,8 @@ export async function clockOutAttendance(userId: string, location?: ClockLocatio
     return null;
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const now = new Date().toISOString();
   const { data: existing } = await client
     .from("attendance")

@@ -17,13 +17,26 @@ export async function POST(request: NextRequest) {
 
     const admin = createAdminClient();
 
+    let subs;
     if (!body.userId) {
-      return NextResponse.json({ error: "userId is required" }, { status: 400 });
-    }
-
-    const { data: subs, error } = await admin.from("push_subscriptions").select("*").eq("user_id", body.userId);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      const { data: admins } = await admin.from("users").select("id").eq("role", "admin");
+      const adminIds = (admins || []).map((a: any) => a.id);
+      
+      if (adminIds.length === 0) {
+        return NextResponse.json({ ok: true, results: [] });
+      }
+      
+      const { data, error } = await admin.from("push_subscriptions").select("*").in("user_id", adminIds);
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      subs = data;
+    } else {
+      const { data, error } = await admin.from("push_subscriptions").select("*").eq("user_id", body.userId);
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      subs = data;
     }
 
     const payload = JSON.stringify({ title: body.title || "HRMS", body: body.message || "You have a new notification", url: body.url || "/" });

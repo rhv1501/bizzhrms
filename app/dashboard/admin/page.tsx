@@ -18,6 +18,7 @@ import {
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
+  updateLeaveStatus,
   type AdminDashboardSnapshot,
   type AnnouncementItem,
 } from "@/lib/hrms/live";
@@ -126,6 +127,17 @@ export default function AdminDashboard() {
       toast.error(error.message || "Failed to delete");
     } finally {
       setIsDeleting(null);
+    }
+  };
+
+  const handleUpdateLeaveStatus = async (id: string, status: "approved" | "rejected") => {
+    try {
+      await updateLeaveStatus(id, status);
+      toast.success(`Leave ${status}`);
+      const s = await loadAdminDashboardSnapshot();
+      setSnapshot(s);
+    } catch (error: any) {
+      toast.error(error.message || `Failed to ${status} leave`);
     }
   };
 
@@ -328,7 +340,7 @@ export default function AdminDashboard() {
                         size="sm"
                         variant="outline"
                         className="text-green-600 border-green-200 hover:bg-green-50"
-                        onClick={() => toast.success("Leave Approved")}
+                        onClick={() => handleUpdateLeaveStatus(leave.id, "approved")}
                       >
                         Approve
                       </Button>
@@ -336,7 +348,7 @@ export default function AdminDashboard() {
                         size="sm"
                         variant="outline"
                         className="text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => toast.success("Leave Rejected")}
+                        onClick={() => handleUpdateLeaveStatus(leave.id, "rejected")}
                       >
                         Reject
                       </Button>

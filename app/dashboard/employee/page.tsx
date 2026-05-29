@@ -120,10 +120,19 @@ export default function EmployeeDashboard() {
   }, [user]);
 
   const latestAttendance = dashboard?.attendance?.[0] ?? null;
+  const todayStr = format(currentTime, "yyyy-MM-dd");
+  const isClockedInToday = latestAttendance?.date === todayStr && latestAttendance?.clockIn && latestAttendance?.clockOut === "--:--";
+  const hasCompletedToday = latestAttendance?.date === todayStr && latestAttendance?.clockOut !== "--:--";
+  
   const tasks = dashboard?.tasks ?? [];
   const completedTasks = tasks.filter((task) => task.status === "completed").length;
   const taskProgress = tasks.length ? Math.round((completedTasks / tasks.length) * 100) : 0;
-  const workingHours = getHoursWorked(latestAttendance?.clockIn ?? null);
+  
+  // Only show working hours for today's session
+  const workingHours = (latestAttendance?.date === todayStr || isClockedInToday) 
+    ? getHoursWorked(latestAttendance?.clockIn ?? null) 
+    : 0;
+    
   const geolocationEnabled = settings?.settings?.geolocation_enabled ?? false;
 
   const resolveLocation = async (): Promise<ClockLocation | undefined> => {
@@ -190,8 +199,15 @@ export default function EmployeeDashboard() {
     }
 
     try {
-      if (settings?.settings?.enforce_task_completion && tasks.some((task) => task.status !== "completed")) {
-        throw new Error("Complete all tasks before clocking out");
+      if (settings?.settings?.enforce_task_completion) {
+        const blockingTasks = tasks.filter(task => {
+          if (task.status === "completed") return false;
+          if (!task.rawDeadline) return false;
+          return task.rawDeadline <= todayStr;
+        });
+        if (blockingTasks.length > 0) {
+          throw new Error("Complete all tasks due today before clocking out");
+        }
       }
 
       const requiredHours =
@@ -264,15 +280,20 @@ export default function EmployeeDashboard() {
               </div>
 
               <div className="mt-8 flex flex-wrap gap-4 w-full justify-center">
-                {!latestAttendance || !latestAttendance.clockIn ? (
+                {!latestAttendance || latestAttendance.date !== todayStr ? (
                   <Button size="lg" className="w-full max-w-xs gap-2" onClick={handleClockIn} disabled={isSubmitting}>
                     <Clock className="w-5 h-5" />
                     Clock In Now
                   </Button>
-                ) : (
+                ) : isClockedInToday ? (
                   <Button size="lg" variant="destructive" className="w-full max-w-xs gap-2" onClick={handleClockOut} disabled={isSubmitting}>
                     <LogOut className="w-5 h-5" />
                     Clock Out
+                  </Button>
+                ) : (
+                  <Button size="lg" variant="secondary" className="w-full max-w-xs gap-2" disabled>
+                    <CheckCircle2 className="w-5 h-5" />
+                    Shift Completed
                   </Button>
                 )}
               </div>
@@ -287,7 +308,7 @@ export default function EmployeeDashboard() {
               <span className="font-medium text-foreground">Logged: </span>
               {workingHours.toFixed(2)} hrs
             </div>
-            {latestAttendance?.clockIn && (
+            {latestAttendance?.date === todayStr && latestAttendance?.clockIn && (
               <div className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4" />
                 <span>{getLocationLabel(latestAttendance?.location)}</span>
@@ -313,10 +334,10 @@ export default function EmployeeDashboard() {
             <div className="mt-4">
               <Progress value={taskProgress} className="h-2" />
             </div>
-            {settings?.settings?.enforce_task_completion && taskProgress < 100 && (
+            {settings?.settings?.enforce_task_completion && tasks.some(t => t.status !== "completed" && t.rawDeadline && t.rawDeadline <= todayStr) && (
               <div className="mt-4 flex items-start gap-2 text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-950/50 p-2 rounded-md">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <p>Complete all assigned tasks before clocking out.</p>
+                <p>Complete all tasks due today before clocking out.</p>
               </div>
             )}
           </CardContent>
@@ -396,7 +417,7 @@ export default function EmployeeDashboard() {
                     <div className="flex-1">
                       <p className="text-sm font-medium">{entry.status}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {entry.clockIn} → {entry.clockOut}
+                        {entry.date ? format(new Date(entry.date), "MMM d, yyyy") : ""} • {entry.clockIn} → {entry.clockOut}
                       </p>
                       <p className="text-xs text-muted-foreground mt-2">
                         {entry.department} • {entry.hours.toFixed(2)} hrs
