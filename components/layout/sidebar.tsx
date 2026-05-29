@@ -16,6 +16,7 @@ import {
   LogOut,
   Clock,
   History,
+  FileText,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getSupabaseConfig } from "@/lib/supabase/env";
@@ -31,6 +32,7 @@ export function Sidebar({ className, onNavigate }: { className?: string; onNavig
     { name: "Dashboard", path: "/dashboard/admin", icon: LayoutDashboard },
     { name: "Employees", path: "/dashboard/admin/employees", icon: Users },
     { name: "Tasks", path: "/dashboard/admin/tasks", icon: CheckSquare },
+    { name: "Documents", path: "/dashboard/admin/documents", icon: FileText },
     { name: "Leave Requests", path: "/dashboard/admin/leave", icon: Calendar },
     { name: "Settings", path: "/dashboard/admin/settings", icon: Settings },
   ];

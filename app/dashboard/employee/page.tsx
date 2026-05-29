@@ -247,7 +247,7 @@ export default function EmployeeDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="col-span-1 lg:col-span-2 border-primary/20 shadow-sm bg-gradient-to-br from-card to-primary/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium flex justify-between items-center gap-2">
+            <CardTitle className="text-lg font-medium flex flex-wrap justify-between items-center gap-2">
               Time & Attendance
               <Badge variant={latestAttendance ? "default" : "secondary"}>
                 {latestAttendance ? latestAttendance.status : "Not clocked in"}
@@ -263,7 +263,7 @@ export default function EmployeeDashboard() {
                 {format(currentTime, "EEEE, MMMM do, yyyy")}
               </div>
 
-              <div className="mt-8 flex gap-4 w-full justify-center">
+              <div className="mt-8 flex flex-wrap gap-4 w-full justify-center">
                 {!latestAttendance || !latestAttendance.clockIn ? (
                   <Button size="lg" className="w-full max-w-xs gap-2" onClick={handleClockIn} disabled={isSubmitting}>
                     <Clock className="w-5 h-5" />
@@ -350,8 +350,8 @@ export default function EmployeeDashboard() {
                 <p className="text-sm text-muted-foreground">No tasks assigned yet.</p>
               ) : (
                 tasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
+                  <div key={task.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors gap-3">
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
                       <div className={`w-2 h-2 rounded-full ${task.status === "completed" ? "bg-green-500" : "bg-amber-500"}`} />
                       <div>
                         <p className={`text-sm font-medium ${task.status === "completed" ? "line-through text-muted-foreground" : ""}`}>
@@ -362,15 +362,17 @@ export default function EmployeeDashboard() {
                         </Badge>
                       </div>
                     </div>
-                    {task.status !== "completed" ? (
-                      <Button size="sm" variant="outline" onClick={() => handleCompleteTask(task.id)}>
-                        Complete
-                      </Button>
-                    ) : (
-                      <Badge variant="default" className="rounded-full">
-                        Ready
-                      </Badge>
-                    )}
+                    <div className="w-full sm:w-auto flex justify-start sm:justify-end mt-2 sm:mt-0">
+                      {task.status !== "completed" ? (
+                        <Button size="sm" variant="outline" onClick={() => handleCompleteTask(task.id)}>
+                          Complete
+                        </Button>
+                      ) : (
+                        <Badge variant="default" className="rounded-full">
+                          Ready
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 ))
               )}

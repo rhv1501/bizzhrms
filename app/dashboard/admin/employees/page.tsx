@@ -300,7 +300,7 @@ export default function AdminEmployeesPage() {
               {snapshot?.attendance.length
                 ? Math.round(
                     (snapshot.attendance.filter(
-                      (item) => item.status === "On Time",
+                      (item) => item.status === "Present",
                     ).length /
                       snapshot.attendance.length) *
                       100,

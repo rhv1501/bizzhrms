@@ -1,4 +1,4 @@
-export type AttendanceStatus = "On Time" | "Late" | "Half Day" | "Absent";
+export type AttendanceStatus = "Present" | "Half Day" | "Absent";
 export type TaskStatus = "pending" | "in_progress" | "completed";
 export type LeaveStatus = "pending" | "approved" | "rejected";
 
@@ -73,7 +73,7 @@ export const employees: EmployeeSummary[] = [
     department: "Engineering",
     title: "Frontend Engineer",
     status: "Active",
-    attendance: "On Time",
+    attendance: "Present",
     clockIn: "08:48 AM",
     hours: 8.4,
     taskCompletion: 94,
@@ -88,7 +88,7 @@ export const employees: EmployeeSummary[] = [
     department: "Operations",
     title: "Operations Manager",
     status: "Remote",
-    attendance: "Late",
+    attendance: "Present",
     clockIn: "09:14 AM",
     hours: 7.7,
     taskCompletion: 88,
@@ -118,7 +118,7 @@ export const employees: EmployeeSummary[] = [
     department: "HR & Admin",
     title: "HR Lead",
     status: "Active",
-    attendance: "On Time",
+    attendance: "Present",
     clockIn: "08:55 AM",
     hours: 8.2,
     taskCompletion: 97,
@@ -205,7 +205,7 @@ export const attendanceLogs: AttendanceItem[] = [
     clockIn: "08:48 AM",
     clockOut: "05:14 PM",
     hours: 8.43,
-    status: "On Time",
+    status: "Present",
   },
   {
     id: "att-2",
@@ -214,7 +214,7 @@ export const attendanceLogs: AttendanceItem[] = [
     clockIn: "09:14 AM",
     clockOut: "05:33 PM",
     hours: 8.31,
-    status: "Late",
+    status: "Present",
   },
   {
     id: "att-3",
@@ -232,7 +232,7 @@ export const attendanceLogs: AttendanceItem[] = [
     clockIn: "08:55 AM",
     clockOut: "05:22 PM",
     hours: 8.45,
-    status: "On Time",
+    status: "Present",
   },
 ];
 

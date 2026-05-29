@@ -561,7 +561,7 @@ export async function clockInAttendance(userId: string, location?: ClockLocation
     const existingRow = existing as AttendanceRow;
     const updatePayload: AttendanceUpdate = {
       clock_in_time: existingRow.clock_in_time ?? now,
-      status: "On Time",
+      status: "Present",
       latitude: location?.latitude ?? existingRow.latitude ?? null,
       longitude: location?.longitude ?? existingRow.longitude ?? null,
       location_name: location?.locationName ?? existingRow.location_name ?? null,
@@ -602,7 +602,7 @@ export async function clockInAttendance(userId: string, location?: ClockLocation
     user_id: userId,
     date: today,
     clock_in_time: now,
-    status: "On Time",
+    status: "Present",
     latitude: location?.latitude ?? null,
     longitude: location?.longitude ?? null,
     location_name: location?.locationName ?? null,
@@ -994,6 +994,146 @@ export async function createAnnouncement(input: { title: string; content: string
     type: input.type,
     author_id: user.id,
   } as any).select("*").maybeSingle();
+  
+  if (error) throw error;
+  
+  // Send push notification to all users for new announcement
+  try {
+    const { data: users } = await client.from("users").select("id");
+    if (users) {
+      const notifications = users.map(u => ({
+        user_id: u.id,
+        title: `New Announcement: ${input.title}`,
+        body: input.content.substring(0, 50) + "...",
+        type: "general"
+      }));
+      await client.from("notifications").insert(notifications as any);
+      
+      fetch("/api/push/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: null, title: `New Announcement: ${input.title}`, message: input.content.substring(0, 50) + "..." })
+      }).catch(() => {});
+    }
+  } catch (e) {
+    console.warn("announcement notification failed", e);
+  }
+
+  return data;
+}
+
+export type DocumentItem = {
+  id: string;
+  title: string;
+  fileUrl: string;
+  userId: string | null;
+  createdAt: string;
+  isSigned: boolean;
+  employeeName?: string;
+};
+
+export async function uploadDocument(title: string, file: File, userId?: string | null) {
+  const client = getClient();
+  if (!client) return null;
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Math.random()}.${fileExt}`;
+  const filePath = `docs/${fileName}`;
+
+  const { error: uploadError } = await client.storage
+    .from('documents')
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data: urlData } = client.storage.from('documents').getPublicUrl(filePath);
+
+  const { data, error } = await client.from("documents" as any).insert({
+    title,
+    file_url: urlData.publicUrl,
+    user_id: userId || null,
+  } as any).select("*").maybeSingle();
+
   if (error) throw error;
   return data;
+}
+
+export async function loadDocuments(): Promise<DocumentItem[]> {
+  const client = getClient();
+  if (!client) return [];
+
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return [];
+
+  const { data: dbUser } = await client.from("users").select("role").eq("id", user.id).single();
+  const isAdmin = dbUser?.role === "admin";
+
+  let query = client.from("documents" as any).select("*").order("created_at", { ascending: false });
+
+  if (!isAdmin) {
+    query = query.or(`user_id.is.null,user_id.eq.${user.id}`);
+  }
+
+  const { data: rows } = await query;
+  
+  const { data: signatures } = await client.from("document_signatures" as any).select("*").eq("user_id", user.id);
+  const signedDocIds = new Set((signatures || []).map((s: any) => s.document_id));
+
+  const users = isAdmin ? await fetchUsers() : [];
+
+  const rowsTyped = (rows ?? []) as any[];
+  return rowsTyped.map(row => ({
+    id: row.id,
+    title: row.title,
+    fileUrl: row.file_url,
+    userId: row.user_id,
+    createdAt: row.created_at,
+    isSigned: signedDocIds.has(row.id),
+    employeeName: row.user_id && isAdmin ? displayName(userById(users, row.user_id)) : undefined,
+  }));
+}
+
+export async function signDocument(documentId: string) {
+  const client = getClient();
+  if (!client) return null;
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await client.from("document_signatures" as any).insert({
+    document_id: documentId,
+    user_id: user.id,
+  } as any);
+
+  if (error) throw error;
+  return true;
+}
+
+export async function deleteDocument(documentId: string) {
+  const client = getClient();
+  if (!client) return null;
+  
+  const { error } = await client.from("documents" as any).delete().eq("id", documentId);
+  if (error) throw error;
+  return true;
+}
+
+export async function updateAnnouncement(id: string, input: { title?: string; content?: string; type?: string }) {
+  const client = getClient();
+  if (!client) return null;
+  const updatePayload: any = {};
+  if (input.title) updatePayload.title = input.title;
+  if (input.content) updatePayload.content = input.content;
+  if (input.type) updatePayload.type = input.type;
+
+  const { data, error } = await client.from("announcements" as any).update(updatePayload).eq("id", id).select("*").maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteAnnouncement(id: string) {
+  const client = getClient();
+  if (!client) return null;
+  const { error } = await client.from("announcements" as any).delete().eq("id", id);
+  if (error) throw error;
+  return true;
 }

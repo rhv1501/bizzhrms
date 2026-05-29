@@ -79,7 +79,7 @@ export default function EmployeeHistoryPage() {
   const onTimeRate =
     attendance.length > 0
       ? Math.round(
-          (attendance.filter((entry) => entry.status === "On Time").length /
+          (attendance.filter((entry) => entry.status === "Present").length /
             attendance.length) *
             100,
         )
@@ -154,7 +154,7 @@ export default function EmployeeHistoryPage() {
         <CardHeader>
           <CardTitle>Recent Attendance Sessions</CardTitle>
           <CardDescription>
-            Detailed clock activity with automatic Late / On Time / Half Day
+            Detailed clock activity with automatic Present / Half Day
             labels.
           </CardDescription>
         </CardHeader>
